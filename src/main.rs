@@ -181,10 +181,13 @@ fn ecb_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 /// very first block because it doesn't have a previous block. Typically this IV
 /// is inserted as the first block of ciphertext.
 fn cbc_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
-	// Remember to generate a random initialization vector for the first block.
+    // Remember to generate a random initialization vector for the first block.
 
-	let init_vector = [0; BLOCK_SIZE];
-	
+    // let init_vector = [0; BLOCK_SIZE];
+
+    let mut init_vector = [0; BLOCK_SIZE];
+	rand::thread_rng().fill(&mut init_vector[0..BLOCK_SIZE]);
+
 	let mut cipher_text = Vec::new();
 
 	let mut prev_block = init_vector;
@@ -197,16 +200,21 @@ fn cbc_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 		prev_block = encrypted_block;
     }
 
-	cipher_text
+    cipher_text.extend_from_slice(&init_vector);
+    cipher_text
+	
 }
 
 fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
+    
+    let nonce_vec = cipher_text[cipher_text.len() - BLOCK_SIZE..cipher_text.len()].to_vec();
+	let nonce: [u8; BLOCK_SIZE] = nonce_vec.try_into().expect("Nonce length is not 16");
+	let cipher_text = cipher_text[0..cipher_text.len() - BLOCK_SIZE].to_vec();
 	
-	let init_vector = [0; BLOCK_SIZE];
 	
 	let mut plain_text = Vec::new();
 
-	let mut prev_block = init_vector;
+	let mut prev_block = nonce;
 	for block in group(cipher_text.clone()) {
 		let decrypted_block = aes_decrypt(block, &key);
 		let xored_block = xor(decrypted_block, prev_block);
@@ -214,7 +222,7 @@ fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 		prev_block = block;
 	}
 
-	un_pad(plain_text)
+	unpad(plain_text)
 }
 
 fn increment_counter(counter: &mut [u8; 16]) {
