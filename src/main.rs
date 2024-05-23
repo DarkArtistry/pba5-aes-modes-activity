@@ -273,7 +273,7 @@ fn ctr_encrypt(plain_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 	cipher_text
 }
 
-fn ctr_decrypt(mut cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
+fn ctr_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
     
 	let nonce_vec = cipher_text[cipher_text.len() - 16..cipher_text.len()].to_vec();
 	let nonce: [u8; 16] = nonce_vec.try_into().expect("Nonce length is not 16");
