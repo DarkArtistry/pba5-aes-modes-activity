@@ -222,7 +222,7 @@ fn cbc_decrypt(cipher_text: Vec<u8>, key: [u8; BLOCK_SIZE]) -> Vec<u8> {
 		prev_block = block;
 	}
 
-	unpad(plain_text)
+	un_pad(plain_text)
 }
 
 fn increment_counter(counter: &mut [u8; 16]) {
